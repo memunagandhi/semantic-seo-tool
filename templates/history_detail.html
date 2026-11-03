@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+  
+  <div class="dashboard-toolbar">
+    <div>
+      <a href="{{ url_for('history') }}" class="back-link">← Back to All Evaluations</a>
+      <h1 class="page-title">Analysis Record #{{ run.id }}</h1>
+      <p class="page-sub">Executed on {{ run.created_at.strftime('%d %B %Y at %H:%M UTC') }} via {{ run.engine_mode }}</p>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-bottom: 24px;">
+    <h3 style="color: var(--accent); margin-bottom: 12px;">Query / Intent</h3>
+    <p style="font-size: 1.15rem; font-weight: 600; color: #fff;">{{ run.search_query }}</p>
+
+    <div style="display: flex; gap: 24px; margin-top: 20px; flex-wrap: wrap;">
+      <div>
+        <span style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase;">Top Score</span>
+        <p style="font-size: 1.4rem; font-weight: 700; color: var(--teal); margin: 4px 0 0;">{{ (run.top_score * 100)|round(1) }}%</p>
+      </div>
+      <div>
+        <span style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase;">AEO Verdict</span>
+        <p style="margin: 6px 0 0;">
+          <span class="verdict-pill {% if run.verdict == 'High Alignment' %}verdict-high{% elif run.verdict == 'Moderate Alignment' %}verdict-med{% else %}verdict-low{% endif %}">
+            {{ run.verdict }}
+          </span>
+        </p>
+      </div>
+      <div>
+        <span style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase;">Missing Entities</span>
+        <p style="margin: 6px 0 0; color: #FFAA00;">{{ run.missing_entities or 'None (Fully Aligned)' }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3 style="color: var(--accent); margin-bottom: 18px;">Passage Breakdown &amp; Ranks</h3>
+    <div class="table-responsive">
+      <table class="matrix-table">
+        <thead>
+          <tr>
+            <th>Passage</th>
+            <th>Dense Similarity</th>
+            <th>Post-Rerank Position</th>
+            <th>Shift</th>
+            <th>Content Preview</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in run.passages %}
+            <tr>
+              <td><strong>#{{ p.original_index }}</strong></td>
+              <td>{{ (p.dense_similarity * 100)|round(2) }}% (Rank #{{ p.initial_dense_rank }})</td>
+              <td><strong>{{ (p.rerank_score * 100)|round(1) }}%</strong> (Pos #{{ p.post_rerank_position }})</td>
+              <td>
+                {% if p.rank_shift > 0 %}
+                  <span class="badge-shift shift-up">▲ +{{ p.rank_shift }}</span>
+                {% elif p.rank_shift < 0 %}
+                  <span class="badge-shift shift-down">▼ {{ p.rank_shift }}</span>
+                {% else %}
+                  <span class="badge-shift shift-same">▬ Unchanged</span>
+                {% endif %}
+              </td>
+              <td style="max-width: 400px; color: var(--text-muted); font-size: 0.88rem;">{{ p.content }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

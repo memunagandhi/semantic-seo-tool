@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+  
+  <div class="dashboard-toolbar">
+    <div>
+      <h1 class="page-title">API &amp; Engine Settings</h1>
+      <p class="page-sub">Check the active engine. API credentials are managed securely in the hosting environment.</p>
+    </div>
+  </div>
+
+  <div class="panel" style="max-width: 680px;">
+    <div class="status-summary-box">
+      <div class="status-indicator">
+        <span class="pulse-dot {% if cohere_is_live %}live{% else %}sim{% endif %}"></span>
+        <strong>Status:</strong> {{ engine_label }}
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-dim); margin-top: 8px;">
+        {% if cohere_is_live %}
+          Live calls use Cohere's <strong>embed-english-v3.0</strong> and <strong>rerank-v3.5</strong> cloud models.
+        {% else %}
+          No API key is configured. The tool is using its <strong>Local Simulation Engine</strong>.
+        {% endif %}
+      </p>
+      <p class="help-text">
+        To update the key, change the <code>COHERE_API_KEY</code> secret in your Render service environment settings. Do not enter API keys in the browser or commit them to GitHub.
+      </p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

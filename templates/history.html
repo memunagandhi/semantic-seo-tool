@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+  
+  <div class="dashboard-toolbar">
+    <div>
+      <h1 class="page-title">Evaluation History</h1>
+      <p class="page-sub">Database log of all Dense Retrieval and Cohere Cross-Encoder analyses run on this instance.</p>
+    </div>
+    <div class="toolbar-actions">
+      <a href="{{ url_for('export_excel') }}" class="btn-primary-glow" style="min-height: 40px; padding: 0 18px;">
+        <span class="icon">📥</span> Export to Excel (.xlsx)
+      </a>
+    </div>
+  </div>
+
+  <div class="panel">
+    {% if runs %}
+      <div class="table-responsive">
+        <table class="matrix-table history-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Date &amp; Time (UTC)</th>
+              <th>Search Query</th>
+              <th>Engine Mode</th>
+              <th>AEO Winner</th>
+              <th>Relevance Score</th>
+              <th>Verdict</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in runs %}
+              <tr>
+                <td><strong>#{{ r.id }}</strong></td>
+                <td>{{ r.created_at.strftime('%d %b %Y, %H:%M') }}</td>
+                <td class="query-cell">{{ r.search_query }}</td>
+                <td><span class="engine-tag">{{ r.engine_mode }}</span></td>
+                <td>Passage #{{ r.top_passage_index }}</td>
+                <td><strong>{{ (r.top_score * 100)|round(1) }}%</strong></td>
+                <td>
+                  <span class="verdict-pill {% if r.verdict == 'High Alignment' %}verdict-high{% elif r.verdict == 'Moderate Alignment' %}verdict-med{% else %}verdict-low{% endif %}">
+                    {{ r.verdict }}
+                  </span>
+                </td>
+                <td>
+                  <a href="{{ url_for('history_detail', run_id=r.id) }}" class="btn-table-action">View Details →</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="results-empty-state">
+        <div class="empty-icon">📂</div>
+        <h3>No Past Analyses Found</h3>
+        <p>Run your first search intent evaluation on the dashboard to start logging records.</p>
+        <a href="{{ url_for('dashboard') }}" class="btn-primary-glow" style="display: inline-flex; width: auto; margin-top: 16px;">Go to Dashboard</a>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

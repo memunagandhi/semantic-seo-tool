@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}MGwix SemanticIR Studio | AI Search & Reranking Engine{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <a href="{{ url_for('dashboard') }}" class="brand-link">
+          <span class="brand-logo">M</span>
+          <span class="brand-text">MGwix <strong>SemanticIR</strong></span>
+        </a>
+      </div>
+
+      <nav class="nav-links">
+        <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">Dashboard</a>
+        <a href="{{ url_for('history') }}" class="nav-item {% if request.endpoint in ['history', 'history_detail'] %}active{% endif %}">Evaluation History</a>
+        <a href="{{ url_for('settings') }}" class="nav-item {% if request.endpoint == 'settings' %}active{% endif %}">API Settings</a>
+        <form method="post" action="{{ url_for('logout') }}">
+          <button type="submit" class="nav-item">Log out</button>
+        </form>
+      </nav>
+
+      <div class="engine-badge {% if cohere_is_live %}live{% else %}sim{% endif %}">
+        <span class="pulse-dot"></span>
+        <span class="badge-text">{{ engine_label }}</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, msg in messages %}
+          <div class="flash-alert flash-{{ category }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Main Content Body -->
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p>&copy; {{ current_year }} MGwix.online · Information Retrieval &amp; Cross-Encoder AEO Engine</p>
+      <div class="footer-links">
+        <a href="https://mgwix.online" target="_blank" rel="noopener">MGwix Agency ↗</a>
+        <a href="{{ url_for('settings') }}">API Status</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+  <!-- Sub-header & Action Bar -->
+  <div class="dashboard-toolbar">
+    <div>
+      <h1 class="page-title">Dense Retrieval &amp; Cross-Encoder Studio</h1>
+      <p class="page-sub">Audit content passages against user search intent for Google AI Overviews &amp; Perplexity citations.</p>
+    </div>
+    <div class="toolbar-actions">
+      <button type="button" class="btn-ghost" id="btn-load-demo">
+        <span class="icon">✦</span> Load Cold-Chain Demo Data
+      </button>
+      <a href="{{ url_for('history') }}" class="btn-ghost">
+        History ({{ total_runs }})
+      </a>
+    </div>
+  </div>
+
+  <!-- Two-Column Grid Layout -->
+  <div class="studio-grid">
+
+    <!-- LEFT COLUMN: Input Workshop -->
+    <div class="panel panel-input">
+      <div class="panel-header">
+        <span class="panel-tag">STEP 1</span>
+        <h2>Search Intent &amp; Content Passages</h2>
+      </div>
+
+      <form id="analyze-form">
+        <div class="form-group">
+          <label for="search-query">Target Search Query / Intent <span class="required">*</span></label>
+          <div class="input-with-icon">
+            <span class="input-icon">🔍</span>
+            <input 
+              type="text" 
+              id="search-query" 
+              name="query" 
+              placeholder="e.g. What temperature is required for pharmaceutical cold chain shipping?" 
+              required
+              autocomplete="off"
+            >
+          </div>
+        </div>
+
+        <div class="passages-header">
+          <label>Candidate Content Passages (Paragraphs to Evaluate)</label>
+          <span class="passage-counter" id="passage-count-pill">3 Passages</span>
+        </div>
+
+        <!-- Dynamic Passage Cards Container -->
+        <div class="passages-stack" id="passages-container">
+          <!-- Card 1 -->
+          <div class="passage-card" data-index="1">
+            <div class="passage-card-header">
+              <span class="passage-label">Passage #1</span>
+              <button type="button" class="btn-remove-passage" title="Remove passage">✕</button>
+            </div>
+            <textarea class="passage-textarea" placeholder="Paste paragraph or section content here..."></textarea>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="passage-card" data-index="2">
+            <div class="passage-card-header">
+              <span class="passage-label">Passage #2</span>
+              <button type="button" class="btn-remove-passage" title="Remove passage">✕</button>
+            </div>
+            <textarea class="passage-textarea" placeholder="Paste paragraph or section content here..."></textarea>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="passage-card" data-index="3">
+            <div class="passage-card-header">
+              <span class="passage-label">Passage #3</span>
+              <button type="button" class="btn-remove-passage" title="Remove passage">✕</button>
+            </div>
+            <textarea class="passage-textarea" placeholder="Paste paragraph or section content here..."></textarea>
+          </div>
+        </div>
+
+        <div class="passage-actions">
+          <button type="button" class="btn-add-passage" id="btn-add-passage">
+            <span>+</span> Add Another Passage
+          </button>
+        </div>
+
+        <button type="submit" class="btn-primary-glow" id="btn-submit">
+          <span class="btn-text">Run Dense Retrieval &amp; Rerank</span>
+          <span class="btn-loader" style="display: none;">Analyzing...</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- RIGHT COLUMN: Results & AEO Evaluation -->
+    <div class="panel panel-results" id="results-panel">
+      
+      <!-- Placeholder State before first run -->
+      <div class="results-empty-state" id="empty-state">
+        <div class="empty-icon">📊</div>
+        <h3>No Analysis Run Yet</h3>
+        <p>Enter your search query and candidate passages on the left, then click <strong>"Run Dense Retrieval &amp; Rerank"</strong> to see live AI Overview evaluation scores.</p>
+        <button type="button" class="btn-secondary" id="btn-empty-demo">Try Cold-Chain Demo</button>
+      </div>
+
+      <!-- Live Analysis Output Container -->
+      <div class="results-content" id="live-results" style="display: none;">
+        
+        <div class="panel-header">
+          <span class="panel-tag">STEP 2</span>
+          <h2>Live Evaluation Results</h2>
+          <span class="live-pill">● Realtime</span>
+        </div>
+
+        <!-- Featured Winner Card -->
+        <div class="winner-card">
+          <div class="winner-score-ring">
+            <div class="circular-chart">
+              <svg viewBox="0 0 36 36" class="circle-svg">
+                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path class="circle" id="score-circle-path" stroke-dasharray="88, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              </svg>
+              <div class="circle-number">
+                <span class="number" id="winner-score-num">88%</span>
+                <span class="label">AEO Alignment</span>
+              </div>
+            </div>
+          </div>
+          <div class="winner-info">
+            <div class="winner-badge" id="winner-verdict-badge">Featured Winner (Doc #1)</div>
+            <p class="winner-passage-text" id="winner-text">Loading...</p>
+          </div>
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="comparison-section">
+          <h3>Information Retrieval Comparison Matrix</h3>
+          <div class="table-responsive">
+            <table class="matrix-table">
+              <thead>
+                <tr>
+                  <th>Passage</th>
+                  <th>Dense Retrieval (Embeddings)</th>
+                  <th>Cohere Rerank Position</th>
+                  <th>Rank Movement</th>
+                </tr>
+              </thead>
+              <tbody id="matrix-tbody">
+                <!-- Dynamically populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Topical Gap Warning Box -->
+        <div class="topical-gap-card" id="topical-gap-card">
+          <div class="gap-header">
+            <span class="gap-icon">⚠️</span>
+            <h4>Topical Gap Detected</h4>
+          </div>
+          <p class="gap-desc">The winning passage is missing direct answers for the following search intent entities:</p>
+          <div class="missing-tags" id="missing-tags-box">
+            <!-- Badges -->
+          </div>
+          <div class="gap-advice" id="gap-advice-text">
+            <strong>Copy Optimization Suggestion:</strong> Add these entity terms in the main heading.
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
